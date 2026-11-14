@@ -15,8 +15,17 @@ async def lifespan(_):
     yield
     if task: task.cancel()
 
+class StripApiPrefix:
+    """Vercel routes /api/* to this service. Accept /api/meta as /meta so routes match either way."""
+    def __init__(self, app): self.app = app
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http" and (scope["path"] == "/api" or scope["path"].startswith("/api/")):
+            scope = dict(scope, path=scope["path"][4:] or "/")
+        await self.app(scope, receive, send)
+
 log = logging.getLogger("uvicorn.error")
 app = FastAPI(title="ReserveCMU API", lifespan=lifespan)
+app.add_middleware(StripApiPrefix)
 app.add_middleware(CORSMiddleware, allow_origins=config.CORS_ORIGINS, allow_methods=["GET", "POST"], allow_headers=["*"])
 Db = Annotated[object, Depends(db.get_db)]
 

@@ -1,4 +1,5 @@
-import sqlite3
+import os, sqlite3, threading
+from pathlib import Path
 from . import config
 
 SCHEMA = """
@@ -35,7 +36,25 @@ def init(conn: sqlite3.Connection) -> None:
     if "active" not in [r[1] for r in conn.execute("PRAGMA table_info(spaces)")]:   # migrate DBs created before this column
         conn.execute("ALTER TABLE spaces ADD COLUMN active INTEGER NOT NULL DEFAULT 1")
 
+DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+_built = False
+_lock = threading.Lock()
+
+def ensure_built() -> None:
+    """Build the database from data/*.txt if it doesn't exist (e.g. a fresh Vercel instance)."""
+    global _built
+    if _built: return
+    with _lock:
+        if _built: return
+        if not os.path.exists(config.DB_PATH):
+            from .ingest import ingest  # local import: ingest imports this module
+            conn = connect()
+            try: ingest(str(DATA_DIR / "raw_pages.txt"), str(DATA_DIR / "availability.txt"), conn)
+            finally: conn.close()
+        _built = True
+
 def get_db():  # FastAPI dependency
+    ensure_built()
     conn = connect()
     try:
         yield conn

@@ -22,7 +22,8 @@ export class ApiError extends Error {
   status: number
   constructor(status: number, msg: string) { super(msg); this.status = status }
 }
-const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+// Same origin: Vercel routes /api/* to the backend; in dev, Vite proxies /api to it (see vite.config.ts).
+const BASE = import.meta.env.VITE_API_URL ?? '/api'
 
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
   const r = await fetch(BASE + path, { headers: { 'Content-Type': 'application/json' }, ...init })

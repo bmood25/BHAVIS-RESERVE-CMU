@@ -2,7 +2,8 @@ from dotenv import load_dotenv
 load_dotenv()
 import os
 
-DB_PATH = os.getenv("DB_PATH", "reservecmu.db")
+# On Vercel the deployment is read-only except /tmp, so the database is built there on first use.
+DB_PATH = os.getenv("DB_PATH", "/tmp/reservecmu.db" if os.getenv("VERCEL") else "reservecmu.db")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini")  # any tool-calling model
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
