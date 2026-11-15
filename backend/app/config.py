@@ -4,8 +4,9 @@ import os
 
 # On Vercel the deployment is read-only except /tmp, so the database is built there on first use.
 DB_PATH = os.getenv("DB_PATH", "/tmp/reservecmu.db" if os.getenv("VERCEL") else "reservecmu.db")
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
-OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini")  # any tool-calling model
+# .strip(): a key pasted with a trailing space/newline makes httpx raise LocalProtocolError
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "").strip()
+OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini").strip()  # any tool-calling model
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 # Deep link into 25Live. VERIFY this pattern against a real space page before launch.
 LIVE25_SPACE_URL = os.getenv("LIVE25_SPACE_URL", "https://25live.collegenet.com/pro/cmu#!/home/space/{id}/detail")
